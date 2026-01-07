@@ -29,7 +29,16 @@ export async function GET(request: Request) {
     }
 
     const fileData = await fileResponse.json();
-    const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+    // Edge runtime doesn't provide Node's Buffer. Use atob/btoa when available,
+    // falling back to Buffer for Node runtime.
+    const decodeBase64 = (b64: string) => {
+      if (typeof atob === 'function') return atob(b64);
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const buf = Buffer.from(b64, 'base64');
+      return buf.toString('utf-8');
+    };
+
+    const currentContent = decodeBase64(fileData.content);
     const currentCount = parseInt(currentContent.trim()) || 0;
     const newCount = currentCount + 1;
 
@@ -44,7 +53,7 @@ export async function GET(request: Request) {
       },
       body: JSON.stringify({
         message: `Update counter to ${newCount}`,
-        content: Buffer.from(newCount.toString()).toString('base64'),
+        content: (typeof btoa === 'function') ? btoa(newCount.toString()) : Buffer.from(newCount.toString()).toString('base64'),
         sha: fileData.sha,
         branch: branch,
       }),
