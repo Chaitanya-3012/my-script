@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const owner = process.env.GITHUB_OWNER!;
     const repo = process.env.GITHUB_REPO!;
     const token = process.env.GITHUB_TOKEN!;
-    const branch = "counter-data";
+    const branch = "main";
     const filePath = "data/counter.txt";
 
     // Get current file content
